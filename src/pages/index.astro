@@ -1,19 +1,14 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import StartTerminalConnection from '../components/StartTerminalButton';
+import Layout from '../layouts/Layout.astro'
+import MenuCard from '../components/MenuCard'
 ---
 
 <Layout title="Workbench">
 	<main>
-		<div class="flex bg-white">
-			<StartTerminalConnection client:only="solid-js">Button</StartTerminalConnection>
-		</div>
-		<div class="flex bg-white">
-			<div class="mockup-code">
-				<pre data-prefix="$"><code>npm i daisyui</code></pre>
-				<pre data-prefix=">" class="text-warning"><code>installing...</code></pre>
-				<pre data-prefix=">" class="text-success"><code>Done!</code></pre>
-			</div>
+		<div class="flex flex-col gap-y-4">
+			<MenuCard name="logs" client:only="solid-js" />
+			<MenuCard name="proj-ini" client:only="solid-js" />
+			<MenuCard name="snmss-ini" client:only="solid-js" />
 		</div>
 	</main>
 </Layout>
