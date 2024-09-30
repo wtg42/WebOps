@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 
+import typography from "@tailwindcss/typography";
 import daisyui from "daisyui"
 
 export default {
@@ -8,6 +9,7 @@ export default {
 		extend: {},
 	},
 	plugins: [
+		typography,  // 引入 @tailwindcss/typography
     daisyui,
   ],
 	daisyui: {

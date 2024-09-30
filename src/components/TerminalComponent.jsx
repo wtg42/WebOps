@@ -25,11 +25,9 @@ function TerminalComponent() {
 
   onMount(() => {
     term.open(terminalRef);
-    term.write(
-      JSON.stringify({
-        "message": "Hello from \\x1B[1;3;31mxterm.js\\x1B[0m $ "
-      })
-    );
+
+    // 在模擬器裡面請使用 單引號
+    term.write('Hello from \x1B[1;3;31mxterm.js\x1B[0m \r\n$ ')
 
     // 開啟 WebSocket 連線
     socket = new WebSocket("ws://localhost:8080/ws")
