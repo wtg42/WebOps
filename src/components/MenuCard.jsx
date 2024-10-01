@@ -2,7 +2,13 @@
  * 首頁選單卡片
  */
 
-import { Switch, Match, createSignal, onMount, onCleanup } from 'solid-js'
+import {
+  Switch,
+  Match,
+  createSignal,
+  onMount,
+  onCleanup
+} from 'solid-js'
 
 function MenuCard(props) {
   // 打字效果的全文
@@ -50,6 +56,7 @@ function MenuCard(props) {
   const handleOpenLogPage = () => {
     console.log("Hi There!!")
     console.log(props.name)
+    window.location.href = "/log"
   }
 
   return (
