@@ -1,7 +1,3 @@
-/**
- * 首頁選單卡片
- */
-
 import {
   Switch,
   Match,
@@ -10,6 +6,9 @@ import {
   onCleanup
 } from 'solid-js'
 
+/**
+ * 首頁選單卡片
+ */
 function MenuCard(props) {
   // 打字效果的全文
   const fullText = 'tail -f /var/log/php.log /var/log/apache/error.log'
@@ -64,6 +63,7 @@ function MenuCard(props) {
       {
         <div class="mockup-code w-full h-64">
           <pre data-prefix="$" class="bg-warning text-warning-content">
+            💀
             <code>
               In Development
               {blinkCursor() && <span class="cursor">|</span>}

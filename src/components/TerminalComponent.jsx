@@ -1,11 +1,24 @@
-import { onMount } from 'solid-js';
+import { onMount, onCleanup, createEffect } from 'solid-js';
 import { Terminal } from '@xterm/xterm';
 import '@xterm/xterm/css/xterm.css';
 
-function TerminalComponent() {
+/**
+ * Terminal component that displays a remote terminal.
+ *
+ * @param {Object} props - The props object.
+ * @param {string} props.remoteIP - The remote IP address to display.
+ * @param {number} props.wsCode - The WebSocket code to close the connection.
+ * @param {boolean} props.reconnect - The status of the connection.
+ * @param {(value: boolean | (function(boolean): boolean)) => void} props.reconnectSetter
+ * - The function to change the connection status.
+ */
+function TerminalComponent(props) {
   /** @type {HTMLElement} */
   let terminalRef;
-  const term = new Terminal()
+  let term = new Terminal()
+
+  // Mark if the terminal is disposed
+  let isDisposed = false
 
   /**
    * @type {WebSocket}
@@ -23,11 +36,42 @@ function TerminalComponent() {
     "data": null,
   }
 
-  onMount(() => {
-    term.open(terminalRef);
+  // Websocket 關閉狀態碼
+  const closeCodes = [
+    1000, // regular close
+    1001, // Close the connection from the server
+    1006, // Abnormal Closure (Close Code 1006)
+  ]
+
+  createEffect(() => {
+    // 用戶主動關閉 WebSocket 的副作用區
+    if (closeCodes.includes(props.wsCode)) {
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.close(props.wsCode, "User actively closed the connection.");
+      }
+      isDisposed = true
+    }
+
+    // 這個變數用來判斷是否是重新連線
+    if (props.reconnect) {
+      initTerm()
+      props.reconnectSetter(false)
+    }
+  })
+
+  const initTerm = () => {
+    if (socket) {
+      if (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING) {
+        socket.close(1000, "Reconnecting...");
+      }
+    }
+
+    term.dispose()
+    term = new Terminal()
+    term.open(terminalRef)
 
     // 在模擬器裡面請使用 單引號
-    term.write('Hello from \x1B[1;3;31mxterm.js\x1B[0m \r\n$ ')
+    term.write('Connecting to \x1B[1;3;31m' + props.remoteIP + '\x1B[0m \r\n$ ')
 
     // 開啟 WebSocket 連線
     socket = new WebSocket("ws://localhost:8080/ws")
@@ -38,8 +82,9 @@ function TerminalComponent() {
     };
 
     // 處理 WebSocket 連線關閉
-    socket.onclose = () => {
+    socket.onclose = (ev) => {
       term.write("\r\nConnection closed.\r\n")
+      term.write(`\r\n${ev.reason}\r\n`)
     };
 
     // 監聽鍵盤輸入事件
@@ -61,6 +106,18 @@ function TerminalComponent() {
         console.log(userInput.join(''))
       }
     });
+  }
+
+  onMount(() => {
+    console.log("Init the Terminal.")
+    initTerm()
+  });
+
+  onCleanup(() => {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.close(props.wsCode, "User actively closed the connection.");
+    }
+    term.dispose();
   });
 
   return (

@@ -1,13 +1,9 @@
 ---
-import Layout from "../layouts/Layout.astro"
+import Layout from "../layouts/Layout.astro";
+import LogService from "../components/LogService";
 ---
 
+<!-- Query remote logs -->
 <Layout title="Workbench / log">
-  <div class="w-5/6 m-auto mt-24">
-    <label class="input input-bordered flex items-center gap-2 w-1/2">
-      Remote IP
-      <input type="text" placeholder="192.168.91.63" />
-    </label>
-    <button class="btn btn-outline btn-primary mt-2">Primary</button>
-  </div>
+  <LogService client:only="solid-js" />
 </Layout>
