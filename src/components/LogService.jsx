@@ -1,5 +1,6 @@
 import { createSignal, Show } from "solid-js"
 import TerminalComponent from "./TerminalComponent";
+import { validateIP } from "../utils/validate-helper";
 
 /**
  * LogService - 遠端日誌服務串流服務
@@ -14,10 +15,19 @@ function LogService() {
     setIp(e.target.value);
   };
 
+  const [isShowAlert, setIsShowAlert] = createSignal(false)
+
   // Show the terminal after the user inputs the IP.
   // or reconnect the terminal
   const [showTerminal, setShowTerminal] = createSignal(false)
   const handleConnection = () => {
+    // Vlidate IP first
+    if (!validateIP(ip())) {
+      console.log("Your IP Stirng is invalid.")
+      setIsShowAlert(true)
+      return
+    }
+
     if (showTerminal()) {
       setReconnect(true)
     } else {
@@ -45,8 +55,26 @@ function LogService() {
           type="text"
           placeholder="192.168.91.63"
           onInput={handleInputChange}
+          onfocus={() => setIsShowAlert(false)}
         />
       </label>
+      <Show when={isShowAlert()}>
+      <div role="alert" class="alert alert-error mt-2">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-6 w-6 shrink-0 stroke-current"
+          fill="none"
+          viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>Please enter a valid IP address.</span>
+      </div>
+      </Show>
+
       <div class="flex gap-2">
         <button
           onclick={handleConnection}
