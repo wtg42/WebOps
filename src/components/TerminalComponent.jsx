@@ -17,9 +17,6 @@ function TerminalComponent(props) {
   let terminalRef
   let term = new Terminal()
 
-  // Mark if the terminal is disposed
-  let isDisposed = false
-
   /**
    * @type {WebSocket}
    */
@@ -61,7 +58,6 @@ function TerminalComponent(props) {
       if (socket && socket.readyState === WebSocket.OPEN) {
         socket.close(props.wsCode, "User actively closed the connection.");
       }
-      isDisposed = true
     }
 
     // 這個變數用來判斷是否是重新連線
@@ -78,6 +74,7 @@ function TerminalComponent(props) {
       }
     }
 
+    // 一律先銷毀物件引用
     term.dispose()
     term = new Terminal()
     term.open(terminalRef)
@@ -110,7 +107,7 @@ function TerminalComponent(props) {
           }
 
           // 送出用戶的內容
-          messageStructure.type = "message"
+          messageStructure.type = "logs"
           messageStructure.data = userInput.join('')
           socket.send(JSON.stringify(messageStructure))
 
