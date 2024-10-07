@@ -15,7 +15,7 @@ function LogService() {
     setIp(e.target.value);
   };
 
-  const [isShowAlert, setIsShowAlert] = createSignal(false)
+  const [showAlert, setShowAlert] = createSignal(false)
 
   // Show the terminal after the user inputs the IP.
   // or reconnect the terminal
@@ -24,7 +24,14 @@ function LogService() {
     // Vlidate IP first
     if (!validateIP(ip())) {
       console.log("Your IP Stirng is invalid.")
-      setIsShowAlert(true)
+      setShowAlert(true)
+
+      // Close the terminal that is already open if the IP is invalid
+      if (showTerminal()) {
+        // Interupt the terminal then close it.
+        handleDisconnection()
+        setShowTerminal(false)
+      }
       return
     }
 
@@ -43,7 +50,6 @@ function LogService() {
   const handleDisconnection = () => {
     console.log("handleDisconnection", wsCode())
     setWsCode(1000)
-    // setShowTerminal(false)
   }
 
   return (
@@ -55,11 +61,12 @@ function LogService() {
           type="text"
           placeholder="192.168.91.63"
           onInput={handleInputChange}
-          onfocus={() => setIsShowAlert(false)}
+          onfocus={() => setShowAlert(false)}
         />
       </label>
-      <Show when={isShowAlert()}>
-      <div role="alert" class="alert alert-error mt-2">
+
+      <Show when={showAlert()}>
+      <div role="alert" class="alert alert-error mt-2 w-1/2">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           class="h-6 w-6 shrink-0 stroke-current"
@@ -87,7 +94,9 @@ function LogService() {
           Disconnect
         </button>
       </div>
+
       <div class="divider"></div>
+
       <Show when={showTerminal()}>
         <TerminalComponent
           remoteIP={ip()}

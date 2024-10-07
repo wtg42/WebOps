@@ -14,7 +14,7 @@ import '@xterm/xterm/css/xterm.css';
  */
 function TerminalComponent(props) {
   /** @type {HTMLElement} */
-  let terminalRef;
+  let terminalRef
   let term = new Terminal()
 
   // Mark if the terminal is disposed
@@ -42,6 +42,18 @@ function TerminalComponent(props) {
     1001, // Close the connection from the server
     1006, // Abnormal Closure (Close Code 1006)
   ]
+
+  /**
+   * 定義按鍵常數
+   * @type {{ ENTER: string; ESC: string; BACKSPACE: string }}
+   */
+  const KEYS = {
+    UP:"\x1b[A",
+    DOWN:"\x1b[B",
+    ENTER: '\r',
+    ESC: '\x1b',
+    BACKSPACE: '\x7f'
+  };
 
   createEffect(() => {
     // 用戶主動關閉 WebSocket 的副作用區
@@ -89,28 +101,58 @@ function TerminalComponent(props) {
 
     // 監聽鍵盤輸入事件
     term.onData((data) => {
-      // 簡單處理 Enter 鍵，並重新顯示提示符
-      if (data === '\r') {
-        messageStructure.type = "message"
-        messageStructure.data = userInput.join('')
-        socket.send(JSON.stringify(messageStructure))
-        userInput = []
-        term.write('\r\n$ ') // Enter 鍵換行並重新顯示提示符
-      } else if (data === '\u007F') {
-        // 處理退格鍵
-        term.write('\b \b')
-      } else {
-        // 顯示鍵入的內容
-        term.write(data)
-        userInput.push(data)
-        console.log(userInput.join(''))
+      switch (data) {
+        case KEYS.ENTER:
+          // 如果沒有輸入任何內容
+          if (userInput.length === 0) {
+            term.write('\r\n$ ')
+            return
+          }
+
+          // 送出用戶的內容
+          messageStructure.type = "message"
+          messageStructure.data = userInput.join('')
+          socket.send(JSON.stringify(messageStructure))
+
+          // 清空 buffer
+          userInput = []
+
+          term.write('\r\n$ ') // Enter 鍵換行並重新顯示提示符
+          return
+        case KEYS.BACKSPACE:
+          // 處理退格鍵
+          term.write('\b \b')
+          return
+        default:
+          // 顯示鍵入的內容 並且存入 userInput buffer
+          term.write(data)
+          userInput.push(data)
+          console.log(userInput.join(''))
+          break
       }
+    });
+
+    // 攔截鍵盤事件
+    term.attachCustomKeyEventHandler((event) => {
+      console.log("evnetkey=> ", event)
+      if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        return false
+      }
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        return false
+      }
+      return true
     });
   }
 
   onMount(() => {
     console.log("Init the Terminal.")
     initTerm()
+
+    // 讓 terminal 取得焦點產生游標效果
+    terminalRef.querySelector('.xterm textarea').focus();
   });
 
   onCleanup(() => {
