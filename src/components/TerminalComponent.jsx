@@ -1,4 +1,4 @@
-import { onMount, onCleanup, createEffect } from 'solid-js';
+import { onMount, onCleanup, createEffect, createSignal } from 'solid-js';
 import { Terminal } from '@xterm/xterm';
 import '@xterm/xterm/css/xterm.css';
 
@@ -42,7 +42,7 @@ function TerminalComponent(props) {
 
   /**
    * 定義按鍵常數
-   * @type {{ ENTER: string; ESC: string; BACKSPACE: string }}
+   * @enum {string}
    */
   const KEYS = {
     UP:"\x1b[A",
@@ -52,10 +52,13 @@ function TerminalComponent(props) {
     BACKSPACE: '\x7f'
   };
 
+  // 目前沒有讓用戶開放輸入 先用參數遮擋
+  const [systemInput, setSystemInput] = createSignal(true)
+
   createEffect(() => {
     // 用戶主動關閉 WebSocket 的副作用區
     if (closeCodes.includes(props.wsCode)) {
-      if (socket && socket.readyState === WebSocket.OPEN) {
+      if (socket && socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING) {
         socket.close(props.wsCode, "User actively closed the connection.");
       }
     }
@@ -63,17 +66,39 @@ function TerminalComponent(props) {
     // 這個變數用來判斷是否是重新連線
     if (props.reconnect) {
       initTerm()
+
+      if (socket && socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING) {
+        console.log("hi")
+        socket.close(1000, "User actively closed the connection.");
+      }
+      // terminal 初始化結束 接著連接 WebSocket
+      socket = new WebSocket("ws://localhost:8080/ws")
+      // 監聽 WebSocket 伺服器的訊息
+      socket.onmessage = (event) => {
+        term.write(`\r\nServer: ${event.data}\r\n$ `); // 顯示來自伺服器的訊息
+      };
+
+      // 處理 WebSocket 連線關閉
+      socket.onclose = (ev) => {
+        term.write("\r\nConnection closed.\r\n")
+        term.write(`\r\n${ev.reason}\r\n`)
+      };
+
+      socket.onopen = () => {
+        // 發送啟動服務指令
+        messageStructure.type = "logs";
+        messageStructure.data = "tail -f /var/log/php.log /var/log/apache/error.log";
+        socket.send(JSON.stringify(messageStructure));
+        console.log('WebSocket opened and message sent.');
+        term.write(`\r\n${messageStructure.data}\r\n`);
+      };
+
       props.reconnectSetter(false)
     }
   })
 
+  // 主要功能 接受跟處理任務
   const initTerm = () => {
-    if (socket) {
-      if (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING) {
-        socket.close(1000, "Reconnecting...");
-      }
-    }
-
     // 一律先銷毀物件引用
     term.dispose()
     term = new Terminal()
@@ -81,20 +106,6 @@ function TerminalComponent(props) {
 
     // 在模擬器裡面請使用 單引號
     term.write('Connecting to \x1B[1;3;31m' + props.remoteIP + '\x1B[0m \r\n$ ')
-
-    // 開啟 WebSocket 連線
-    socket = new WebSocket("ws://localhost:8080/ws")
-
-    // 監聽 WebSocket 伺服器的訊息
-    socket.onmessage = (event) => {
-      term.write(`\r\nServer: ${event.data}\r\n$ `); // 顯示來自伺服器的訊息
-    };
-
-    // 處理 WebSocket 連線關閉
-    socket.onclose = (ev) => {
-      term.write("\r\nConnection closed.\r\n")
-      term.write(`\r\n${ev.reason}\r\n`)
-    };
 
     // 監聽鍵盤輸入事件
     term.onData((data) => {
@@ -117,8 +128,11 @@ function TerminalComponent(props) {
           term.write('\r\n$ ') // Enter 鍵換行並重新顯示提示符
           return
         case KEYS.BACKSPACE:
-          // 處理退格鍵
-          term.write('\b \b')
+          // 處理退格鍵 最少留 "$ " 加上一個空格
+          const cursorPosion = term.buffer.active.cursorX
+          if (cursorPosion > 2) {
+            term.write('\b \b')
+          }
           return
         default:
           // 顯示鍵入的內容 並且存入 userInput buffer
@@ -147,9 +161,31 @@ function TerminalComponent(props) {
   onMount(() => {
     console.log("Init the Terminal.")
     initTerm()
-
-    // 讓 terminal 取得焦點產生游標效果
+    // 主動讓 terminal 取得焦點產生游標效果
     terminalRef.querySelector('.xterm textarea').focus();
+
+    // terminal 初始化結束 接著連接 WebSocket
+    socket = new WebSocket("ws://localhost:8080/ws")
+    // 監聽 WebSocket 伺服器的訊息
+    socket.onmessage = (event) => {
+      term.write(`\r\nServer: ${event.data}\r\n$ `); // 顯示來自伺服器的訊息
+    };
+
+    // 處理 WebSocket 連線關閉
+    socket.onclose = (ev) => {
+      term.write("\r\nConnection closed.\r\n")
+      term.write(`\r\n${ev.reason}\r\n`)
+    };
+
+    socket.onopen = () => {
+      // 發送啟動服務指令
+      messageStructure.type = "logs";
+      messageStructure.data = "tail -f /var/log/php.log /var/log/apache/error.log";
+      socket.send(JSON.stringify(messageStructure));
+      console.log('WebSocket opened and message sent.');
+      term.write(`\r\n${messageStructure.data}\r\n`);
+    };
+
   });
 
   onCleanup(() => {
