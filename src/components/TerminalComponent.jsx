@@ -47,7 +47,7 @@ function TerminalComponent(props) {
     if (socket == null || socket?.readyState === WebSocket.CLOSED) {
       socket = null
       // terminal 初始化結束 接著連接 WebSocket
-      socket = new WebSocket("ws://localhost:8080/ws")
+      socket = new WebSocket("ws://localhost:8080/logs")
       // 監聽 WebSocket 伺服器的訊息
       socket.onmessage = (event) => {
         term.write(`\r\nServer: ${event.data}\r\n$ `); // 顯示來自伺服器的訊息

@@ -58,7 +58,7 @@ function LogService() {
         <input
           value={ip()}
           type="text"
-          placeholder="192.168.91.63"
+          placeholder="127.0.0.1"
           onInput={handleInputChange}
           onfocus={() => setShowAlert(false)}
         />
