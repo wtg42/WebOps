@@ -48,7 +48,6 @@ function LogService() {
   // Send a code to the terminal when the user disconnects.
   const [wsCode, setWsCode] = createSignal(0)
   const handleDisconnection = () => {
-    console.log("handleDisconnection", wsCode())
     setWsCode(1000)
   }
 
