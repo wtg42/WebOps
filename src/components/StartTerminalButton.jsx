@@ -1,4 +1,4 @@
-import TerminalComponent from './TerminalComponent';
+import TerminalComponent from "./TerminalComponent";
 
 function StartTerminalConnection() {
   return (
@@ -6,7 +6,7 @@ function StartTerminalConnection() {
       <button
         class="btn"
         onClick={() => {
-          document.getElementById('terminalContainer').style.display = 'block';
+          document.getElementById("terminalContainer").style.display = "block";
         }}
       >
         Button
