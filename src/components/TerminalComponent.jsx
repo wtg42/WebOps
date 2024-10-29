@@ -66,7 +66,7 @@ function TerminalComponent(props) {
         props.loadingSetter(false);
 
         term.write("\r\nConnection closed.\r\n");
-        term.write(`\r\n${ev.reason}\r\n`);
+        console.log(ev)
       };
 
       socket.onopen = () => {
@@ -103,7 +103,6 @@ function TerminalComponent(props) {
 
   /**
    * 定義按鍵常數
-   * @enum {string}
    */
   const KEYS = {
     UP: "\x1b[A",
@@ -120,6 +119,7 @@ function TerminalComponent(props) {
         socket && socket.readyState === WebSocket.OPEN ||
         socket.readyState === WebSocket.CONNECTING
       ) {
+        console.log("props.wsCode::::", props.wsCode)
         socket.close(props.wsCode, "User actively closed the connection.");
 
         props.loadingSetter(true);
