@@ -58,7 +58,7 @@ function TerminalComponent(props) {
       socket = new WebSocket("ws://localhost:8080/logs");
       // 監聽 WebSocket 伺服器的訊息
       socket.onmessage = (event) => {
-        term.write(`\r\nServer: ${event.data}\r\n$ `); // 顯示來自伺服器的訊息
+        term.write(`${event.data}`); // 顯示來自伺服器的訊息
       };
 
       // 處理 WebSocket 連線關閉
