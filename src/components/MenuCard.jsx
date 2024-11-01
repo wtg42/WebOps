@@ -47,9 +47,13 @@ function MenuCard(props) {
   });
 
   const handleOpenLogPage = () => {
-    console.log("Hi There!!");
     console.log(props.name);
     window.location.href = "/log";
+  };
+
+  const handleOpenProcessManagerPage = () => {
+    console.log(props.name);
+    window.location.href = "/process";
   };
 
   return (
@@ -66,8 +70,23 @@ function MenuCard(props) {
         </div>
       }
     >
+      {/* logs sservice */}
       <Match when={props.name === "logs"}>
         <div onclick={handleOpenLogPage} class="mockup-code w-full h-64">
+          <pre data-prefix="$">
+            <code>
+              {displayedText()}
+              {blinkCursor() && <span class="cursor">|</span>}
+            </code>
+          </pre>
+        </div>
+      </Match>
+      {/* process manager */}
+      <Match when={props.name === "process-manager"}>
+        <div
+          onclick={handleOpenProcessManagerPage}
+          class="mockup-code w-full h-64"
+        >
           <pre data-prefix="$">
             <code>
               {displayedText()}

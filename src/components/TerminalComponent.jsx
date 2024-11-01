@@ -72,7 +72,8 @@ function TerminalComponent(props) {
       socket.onopen = () => {
         if (socket.readyState === WebSocket.OPEN) {
           // 發送啟動服務指令
-          messageStructure.type = "logs";
+          // messageStructure.type = "logs";
+          messageStructure.type = "processManager";
           messageStructure.data =
             "tail -f /var/log/php.log /var/log/apache/error.log";
           socket.send(JSON.stringify(messageStructure));
@@ -158,7 +159,8 @@ function TerminalComponent(props) {
           }
 
           // 送出用戶的內容
-          messageStructure.type = "logs";
+          // messageStructure.type = "logs";
+          messageStructure.type = "processManager";
           messageStructure.data = userInput.join("");
           messageStructure.target = props.remoteIP;
           socket.send(JSON.stringify(messageStructure));
