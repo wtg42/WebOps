@@ -3,10 +3,13 @@ import TerminalComponent from "./TerminalComponent";
 import { validateIP } from "../utils/validate-helper";
 
 /**
- * LogService - 遠端日誌服務串流服務
+ * RemoteTerminal - 遠端日誌服務串流服務
  * 包含 IP 輸入框、連線按鈕、模擬器
+ *
+ * @param {Object} props
+ * @param {string} props.name - The name of the remote terminal.
  */
-function LogService() {
+function RemoteTerminal(props) {
   const [reconnect, setReconnect] = createSignal(false);
 
   // 處理輸入框變化，更新信號狀態
@@ -57,7 +60,10 @@ function LogService() {
   return (
     <div class="w-5/6 m-auto mt-24">
       <Show when={isLoading()}>
-        <div id="loading-overlay" class="fixed inset-0 bg-gray-800 bg-opacity-70 flex items-center justify-center z-50">
+        <div
+          id="loading-overlay"
+          class="fixed inset-0 bg-gray-800 bg-opacity-70 flex items-center justify-center z-50"
+        >
           <div class="loading loading-dots loading-lg"></div>
         </div>
       </Show>
@@ -111,6 +117,7 @@ function LogService() {
 
       <Show when={showTerminal()}>
         <TerminalComponent
+          name={props.name}
           remoteIP={ip()}
           wsCode={wsCode()}
           reconnect={reconnect()}
@@ -123,4 +130,4 @@ function LogService() {
   );
 }
 
-export default LogService;
+export default RemoteTerminal;

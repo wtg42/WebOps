@@ -1,9 +1,9 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import LogService from "../components/LogService";
+import RemoteTerminal from "../components/RemoteTerminal";
 ---
 
 <!-- Query remote logs -->
 <Layout title="Workbench / log">
-  <LogService client:only="solid-js" />
+  <RemoteTerminal name="log" client:only="solid-js" />
 </Layout>

@@ -5,7 +5,7 @@ import { createSignal, Match, onCleanup, onMount, Switch } from "solid-js";
  */
 function MenuCard(props) {
   // 打字效果的全文
-  const fullText = "tail -f /var/log/php.log /var/log/apache/error.log";
+  const fullText = showText(props.name);
   // 打字效果的暫存變數
   const [displayedText, setDisplayedText] = createSignal("");
   // 打字效果的游標
@@ -44,16 +44,21 @@ function MenuCard(props) {
 
   onCleanup(() => {
     clearInterval(typingInterval);
+    clearInterval(cursorInterval);
   });
 
   const handleOpenLogPage = () => {
     console.log(props.name);
-    window.location.href = "/log";
+
+    // deno-lint-ignore no-window
+    window.open("/log", "_blank");
   };
 
   const handleOpenProcessManagerPage = () => {
     console.log(props.name);
-    window.location.href = "/process";
+
+    // deno-lint-ignore no-window
+    window.open("/process", "_blank");
   };
 
   return (
@@ -71,7 +76,7 @@ function MenuCard(props) {
       }
     >
       {/* logs sservice */}
-      <Match when={props.name === "logs"}>
+      <Match when={props.name === "log"}>
         <div onclick={handleOpenLogPage} class="mockup-code w-full h-64">
           <pre data-prefix="$">
             <code>
@@ -82,7 +87,7 @@ function MenuCard(props) {
         </div>
       </Match>
       {/* process manager */}
-      <Match when={props.name === "process-manager"}>
+      <Match when={props.name === "process"}>
         <div
           onclick={handleOpenProcessManagerPage}
           class="mockup-code w-full h-64"
@@ -100,3 +105,23 @@ function MenuCard(props) {
 }
 
 export default MenuCard;
+
+/**
+ * 依照所選卡片名稱顯示打字效果
+ *
+ * @param {string} cardName
+ */
+function showText(cardName) {
+  let fullText = "";
+  switch (cardName) {
+    case "log":
+      fullText = "tail -f /var/log/php.log /var/log/apache/error.log";
+      break;
+    case "process":
+      fullText = "top";
+      break;
+    default:
+      break;
+  }
+  return fullText;
+}

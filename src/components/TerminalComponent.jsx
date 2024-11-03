@@ -1,4 +1,4 @@
-import { createEffect, createSignal, on, onCleanup, onMount } from "solid-js";
+import { createEffect, on, onCleanup, onMount } from "solid-js";
 import { Terminal } from "@xterm/xterm";
 import "@xterm/xterm/css/xterm.css";
 
@@ -6,6 +6,7 @@ import "@xterm/xterm/css/xterm.css";
  * Terminal component that displays a remote terminal.
  *
  * @param {Object} props - The props object.
+ * @param {string} props.name - The name of the terminal.
  * @param {string} props.remoteIP - The remote IP address to display.
  * @param {number} props.wsCode - The WebSocket code to close the connection.
  * @param {boolean} props.reconnect - The status of the connection.
@@ -15,9 +16,13 @@ import "@xterm/xterm/css/xterm.css";
  * - The function to change the connection status.
  */
 function TerminalComponent(props) {
+  const termName = props.name;
   /** @type {HTMLElement} */
   let terminalRef;
-  let term = new Terminal();
+  let term = new Terminal({
+    rows: 10,
+    cols: 140,
+  });
 
   /**
    * @type {WebSocket}
@@ -40,7 +45,6 @@ function TerminalComponent(props) {
    * @returns {void} No return value.
    */
   const initWebsocket = () => {
-    console.log("==>", socket);
     if (
       socket?.readyState === WebSocket.OPEN ||
       socket?.readyState === WebSocket.CONNECTING
@@ -55,9 +59,10 @@ function TerminalComponent(props) {
       props.loadingSetter(false);
       socket = null;
       // terminal 初始化結束 接著連接 WebSocket
-      socket = new WebSocket("ws://localhost:8080/logs");
+      socket = new WebSocket("ws://localhost:8080/" + termName);
       // 監聽 WebSocket 伺服器的訊息
       socket.onmessage = (event) => {
+        console.log("onmessage => ", event.data);
         term.write(`${event.data}`); // 顯示來自伺服器的訊息
       };
 
@@ -66,14 +71,13 @@ function TerminalComponent(props) {
         props.loadingSetter(false);
 
         term.write("\r\nConnection closed.\r\n");
-        console.log(ev)
+        console.log(ev);
       };
 
       socket.onopen = () => {
         if (socket.readyState === WebSocket.OPEN) {
           // 發送啟動服務指令
-          // messageStructure.type = "logs";
-          messageStructure.type = "processManager";
+          messageStructure.type = termName;
           messageStructure.data =
             "tail -f /var/log/php.log /var/log/apache/error.log";
           socket.send(JSON.stringify(messageStructure));
@@ -120,7 +124,7 @@ function TerminalComponent(props) {
         socket && socket.readyState === WebSocket.OPEN ||
         socket.readyState === WebSocket.CONNECTING
       ) {
-        console.log("props.wsCode::::", props.wsCode)
+        console.log("props.wsCode::::", props.wsCode);
         socket.close(props.wsCode, "User actively closed the connection.");
 
         props.loadingSetter(true);
@@ -129,7 +133,6 @@ function TerminalComponent(props) {
   });
 
   createEffect(on(() => props.reconnect, (newReconnect) => {
-    console.log("----->", newReconnect);
     if (newReconnect) {
       initWebsocket();
     }
@@ -140,7 +143,10 @@ function TerminalComponent(props) {
   const initTerm = () => {
     // 一律先銷毀物件引用
     term.dispose();
-    term = new Terminal();
+    term = new Terminal({
+      rows: 30,
+      cols: 100,
+    });
     term.open(terminalRef);
 
     // 在模擬器裡面請使用 單引號
@@ -170,13 +176,14 @@ function TerminalComponent(props) {
 
           term.write("\r\n$ "); // Enter 鍵換行並重新顯示提示符
           return;
-        case KEYS.BACKSPACE:
+        case KEYS.BACKSPACE: {
           // 處理退格鍵 最少留 "$ " 加上一個空格
           const cursorPosion = term.buffer.active.cursorX;
           if (cursorPosion > 2) {
             term.write("\b \b");
           }
           return;
+        }
         default:
           // 顯示鍵入的內容 並且存入 userInput buffer
           term.write(data);

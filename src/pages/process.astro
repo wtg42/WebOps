@@ -1,8 +1,8 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import ProcessManager from "../components/LogService";
+import RemoteTerminal from "../components/RemoteTerminal";
 ---
 
 <Layout title="Workbench / process-manager">
-  <ProcessManager client:only="solid-js" />
+  <RemoteTerminal name="process" client:only="solid-js" />
 </Layout>
