@@ -1,16 +1,17 @@
 ---
 import Layout from '../layouts/Layout.astro'
 import MenuCard from '../components/MenuCard'
+import Navbar from '../components/Navbar'
 ---
 
 <Layout title="Workbench">
 	<main class="w-5/6 m-auto">
+		<Navbar client:only="solid-js" />
 		<div class="flex flex-col gap-y-4">
 			<MenuCard name="log" client:only="solid-js" />
 			<MenuCard name="process" client:only="solid-js" />
 			<MenuCard name="proj-ini" client:only="solid-js" />
 			<MenuCard name="snmss-ini" client:only="solid-js" />
-			</div>
 		</div>
 	</main>
 </Layout>

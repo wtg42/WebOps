@@ -1,0 +1,6 @@
+/* Tailwind & DaisyUI & typography 目前設定改為設定通用 css 檔案來引入 */
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes: coffee --default, dark --prefersdark;
+}
+@plugin "@tailwindcss/typography";
